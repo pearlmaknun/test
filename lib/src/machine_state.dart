@@ -10,8 +10,8 @@ abstract class MachineState {
 }
 
 class MachineInitial extends MachineState {
-
-  MachineInitial(List<Product> list, List money) : super(list: list, money: money);
+  MachineInitial(List<Product> list, List money)
+      : super(list: list, money: money);
 
   @override
   String toString() => 'MachineInitial { result: $list }';
@@ -41,3 +41,11 @@ class PurchaseDone extends MachineState {
   PurchaseDone(List moneyBundle) : super(moneyBundle: moneyBundle);
 }
 
+class ResetState extends MachineState {
+  ResetState(List moneyBundle, int nominal, List money, List<Product> list)
+      : super(
+            moneyBundle: moneyBundle,
+            nominal: nominal,
+            money: money,
+            list: list);
+}

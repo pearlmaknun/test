@@ -19,3 +19,5 @@ class ChangeMoney extends MachineEvent {
 class InsertMoney extends MachineEvent {}
 
 class Calculate extends MachineEvent {}
+
+class Reset extends MachineEvent {}

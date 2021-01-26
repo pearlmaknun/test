@@ -39,7 +39,8 @@ class _MainPageState extends State<MainPage> {
                 BlocBuilder<MachineBloc, MachineState>(
                     buildWhen: (previousState, state) =>
                         state.runtimeType == MachineInitial ||
-                        state.runtimeType == ProductChanged,
+                        state.runtimeType == ProductChanged ||
+                            state.runtimeType == ResetState,
                     builder: (context, state) {
                       return ListView.builder(
                         shrinkWrap: true,
@@ -62,7 +63,8 @@ class _MainPageState extends State<MainPage> {
                 BlocBuilder<MachineBloc, MachineState>(
                     buildWhen: (previousState, state) =>
                         state.runtimeType == MachineInitial ||
-                        state.runtimeType == MoneyChanged,
+                        state.runtimeType == MoneyChanged ||
+                            state.runtimeType == ResetState,
                     builder: (context, state) {
                       return DropdownButton(
                         isExpanded: true,
@@ -92,7 +94,8 @@ class _MainPageState extends State<MainPage> {
                 BlocBuilder<MachineBloc, MachineState>(
                     buildWhen: (previousState, state) =>
                         state.runtimeType == MachineInitial ||
-                        state.runtimeType == PreviewMoneys,
+                        state.runtimeType == PreviewMoneys ||
+                            state.runtimeType == ResetState,
                     builder: (context, state) {
                       if (state.moneyBundle != null) {
                         return ListView.builder(
@@ -105,10 +108,67 @@ class _MainPageState extends State<MainPage> {
                       }
                     }),
                 FlatButton(
+                  minWidth: MediaQuery.of(context).size.width,
+                    color: Colors.blue,
                     onPressed: () {
                       _machineBloc.add(Calculate());
                     },
-                    child: Text("SUBMIT"))
+                    child: Text("SUBMIT", style: TextStyle(color: Colors.white),)),
+                BlocBuilder<MachineBloc, MachineState>(
+                    buildWhen: (previousState, state) =>
+                    state.runtimeType == MachineInitial ||
+                        state.runtimeType == InsufficientMoney ||
+                        state.runtimeType == PurchaseDone ||
+                        state.runtimeType == SoldOut ||
+                        state.runtimeType == ResetState,
+                    builder: (context, state) {
+                      if (state is SoldOut) {
+                        return Column(
+                          children: [
+                            Text("Produk Terpilih Habis"),
+                            Text("Uang dikembalikan"),
+                            state.moneyBundle.length != 0 ? ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: state.moneyBundle.length,
+                                itemBuilder: (context, index) =>
+                                    Text("${state.moneyBundle[index]}")) : Text("0")
+                          ],
+                        );
+                      } else if (state is InsufficientMoney) {
+                        return Column(
+                          children: [
+                            Text("Produk Terpilih Habis"),
+                            Text("Uang tidak cukup"),
+                            ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: state.moneyBundle.length,
+                                itemBuilder: (context, index) =>
+                                    Text("${state.moneyBundle[index]}"))
+                          ],
+                        );
+                      } else if (state is PurchaseDone) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Berhasil"),
+                            Text("Kembalian:"),
+                            state.moneyBundle.length != 0 ? ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: state.moneyBundle.length,
+                                itemBuilder: (context, index) =>
+                                    Text("${state.moneyBundle[index]}")) : Text("0")
+                          ],
+                        );
+                      }
+                      return Container();
+                    }),
+                FlatButton(
+                    minWidth: MediaQuery.of(context).size.width,
+                    color: Colors.blue,
+                    onPressed: () {
+                      _machineBloc.add(Reset());
+                    },
+                    child: Text("RESET", style: TextStyle(color: Colors.white),)),
               ],
             ),
           ),

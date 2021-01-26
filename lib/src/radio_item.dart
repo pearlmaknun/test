@@ -13,7 +13,7 @@ class RadioItem extends StatelessWidget {
         height: 50.0,
         width: 50.0,
         child: new Center(
-          child: new Text(_item.name,
+          child: new Text("${_item.name} RP${_item.price}",
               style: new TextStyle(
                   color: _item.selected ? Colors.white : Colors.black,
                   //fontWeight: FontWeight.bold,

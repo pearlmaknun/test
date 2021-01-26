@@ -15,7 +15,7 @@ class MachineBloc extends Bloc<MachineEvent, MachineState> {
     Product("TANGO", 12000, 2, false),
     Product("COKELAT", 15000, 2, false)
   ];
-  Product _selectedProduct;
+  int _selectedProduct;
   static List _money = [2000, 5000, 10000, 20000, 50000];
   int _selectedMoney;
   List<int> _moneyBundle = new List();
@@ -30,9 +30,7 @@ class MachineBloc extends Bloc<MachineEvent, MachineState> {
   }
 
   @override
-  Stream<MachineState> mapEventToState(
-    MachineEvent event,
-  ) async* {
+  Stream<MachineState> mapEventToState(MachineEvent event,) async* {
     if (event is ChangeProduct) {
       yield* _mapChangeProductToState(event);
     } else if (event is ChangeMoney) {
@@ -41,13 +39,15 @@ class MachineBloc extends Bloc<MachineEvent, MachineState> {
       yield* _mapInsertMoneyToState(event);
     } else if (event is Calculate) {
       yield* _mapCalculateToState(event);
+    } else if (event is Reset) {
+      yield* _mapResetToState(event);
     }
   }
 
   Stream<MachineState> _mapChangeProductToState(ChangeProduct event) async* {
     _list.forEach((element) => element.selected = false);
     _list[event.index].selected = true;
-    _selectedProduct = _list[event.index];
+    _selectedProduct = event.index;
     yield ProductChanged(_list);
   }
 
@@ -62,39 +62,51 @@ class MachineBloc extends Bloc<MachineEvent, MachineState> {
     yield PreviewMoneys(_moneyBundle);
   }
 
+  Stream<MachineState> _mapResetToState(Reset event) async* {
+    _selectedProduct = null;
+    _list.forEach((element) => element.selected = false);
+    _selectedMoney = null;
+    _moneyBundle.clear();
+    _changeBundle.clear();
+    yield ResetState(_moneyBundle, _selectedMoney, _money, _list);
+  }
+
   Stream<MachineState> _mapCalculateToState(Calculate event) async* {
     int total = 0;
     int change = 0;
     for (int a in _moneyBundle) {
       total = total + a;
     }
-    if (_selectedProduct.quantity >= 0) {
-      if (total >= _selectedProduct.price) {
-        change = total - _selectedProduct.price;
+    if (_list[_selectedProduct].quantity > 0) {
+      if (total >= _list[_selectedProduct].price) {
+        change = total - _list[_selectedProduct].price;
+        _list[_selectedProduct].quantity--;
         calculateChange(change);
+        yield PurchaseDone(_changeBundle);
       } else {
-        yield InsufficientMoney(_changeBundle);
+        yield InsufficientMoney(_moneyBundle);
       }
-      yield PurchaseDone(_changeBundle);
     } else {
       change = total;
-      yield SoldOut(_changeBundle);
+      yield SoldOut(_moneyBundle);
     }
   }
 
   calculateChange(int amountMoneyToReturn) {
     print(amountMoneyToReturn);
     int remainingAmount = amountMoneyToReturn;
-    for (int a in _money) {
+    for (int j = _money.length-1; j >= 0; j--) {
       print('masuk');
-      int numberOf = remainingAmount ~/ a;
-      for (int i = numberOf; i > 0; i++) {
-        _changeBundle.add(a);
+      int numberOf = remainingAmount ~/ _money[j];
+      print(numberOf);
+      for (int i = numberOf; i > 0; i--) {
+        _changeBundle.add(_money[j]);
       }
-      remainingAmount = remainingAmount % numberOf;
+      remainingAmount = remainingAmount % _money[j];
     }
     for (int a in _changeBundle) {
       print(a);
     }
+    print(_list[_selectedProduct].quantity);
   }
 }
